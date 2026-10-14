@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!-- Beim Öffnen einer Quelle erfährt die Zielseite nicht, von welcher Adresse man kommt. -->
+    <meta name="referrer" content="no-referrer" />
+    <meta
+      name="description"
+      content="Atemtrainer fürs Tauchen: Zwerchfellatmung, Lippenbremse und CO₂-Tabellen."
+    />
+    <meta name="theme-color" content="#E6F0EF" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#071C26" media="(prefers-color-scheme: dark)" />
+    <title>Atemtrainer fürs Tauchen</title>
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" sizes="any" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
+    <meta name="apple-mobile-web-app-title" content="Atemtrainer" />
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="top">
+        <h1>Atemtrainer</h1>
+        <button type="button" class="streak-chip" id="streak"></button>
+      </header>
+
+      <div class="update" id="update" role="status" hidden>
+        <span>Eine neue Version ist da.</span>
+        <button type="button" class="secondary" id="reload">Neu laden</button>
+      </div>
+
+      <div class="view" id="viewTraining">
+        <div class="day">
+          <p class="today" id="today"></p>
+          <ol class="week" id="week" aria-label="Diese Woche"></ol>
+        </div>
+
+        <div class="modes" id="modes" role="group" aria-label="Übung wählen">
+          <button type="button" data-mode="belly" aria-pressed="false">Zwerchfell</button>
+          <button type="button" data-mode="co2" aria-pressed="false">CO₂</button>
+          <button type="button" data-mode="lips" aria-pressed="false">Lippenbremse</button>
+        </div>
+
+        <section class="stage" id="stage" data-phase="ready" aria-label="Atemanzeige">
+          <div class="water" id="water"><div class="bubbles" id="bubbles"></div></div>
+          <div class="readout-stage">
+            <div class="phase" id="phase" aria-live="polite"></div>
+            <div class="count" id="count" aria-hidden="true"></div>
+          </div>
+        </section>
+        <p class="hint" id="hint"></p>
+        <button type="button" class="why" id="why">Warum so?</button>
+        <div class="feel" id="feel" role="group" aria-labelledby="feelLabel" hidden>
+          <span class="feel-label" id="feelLabel">Wie war's?</span>
+          <button type="button" data-feel="easy" aria-pressed="false">Leicht</button>
+          <button type="button" data-feel="ok" aria-pressed="false">Passend</button>
+          <button type="button" data-feel="hard" aria-pressed="false">Schwer</button>
+        </div>
+
+        <div class="progress">
+          <div class="bar"><span id="bar"></span></div>
+          <span id="progressText"></span>
+        </div>
+
+        <div class="controls">
+          <button type="button" class="primary" id="main">Start</button>
+          <button type="button" class="ghost" id="stop" hidden>Beenden</button>
+        </div>
+
+        <section class="settings" id="settings" aria-label="Einstellungen"></section>
+        <p class="safety" id="safety"></p>
+      </div>
+
+      <section class="view" id="viewProgress" aria-labelledby="progressTitle" hidden>
+        <h2 id="progressTitle">Verlauf</h2>
+        <div class="cards" id="progress"></div>
+        <section class="card" aria-labelledby="dataTitle">
+          <h3 id="dataTitle">Daten</h3>
+          <p class="sub">
+            Dein Verlauf liegt nur in diesem Browser. Sichere ihn als Datei, um ihn auf ein anderes
+            Gerät mitzunehmen oder vor dem Löschen der Website-Daten zu schützen.
+          </p>
+          <div class="data-actions">
+            <button type="button" class="secondary" id="exportData">Daten sichern</button>
+            <button type="button" class="secondary" id="importData">Daten laden</button>
+          </div>
+          <p class="readout" id="dataStatus" aria-live="polite"></p>
+        </section>
+      </section>
+
+      <section class="view" id="viewInfo" aria-labelledby="infoTitle" hidden>
+        <h2 id="infoTitle">Wissen</h2>
+        <p class="lead">
+          Warum die Übungen so aufgebaut sind, was die Forschung dazu sagt und woran du Fortschritt
+          erkennst.
+        </p>
+        <dl class="evidence-legend">
+          <div>
+            <dt><span class="badge strong">Gut belegt</span></dt>
+            <dd>mehrere Studien oder Übersichtsarbeiten, oder physikalisch klar</dd>
+          </div>
+          <div>
+            <dt><span class="badge some">Erste Hinweise</span></dt>
+            <dd>wenige oder kleine Studien</dd>
+          </div>
+          <div>
+            <dt><span class="badge practice">Erfahrungswissen</span></dt>
+            <dd>gängige Praxis in Tauch- und Apnoe-Ausbildung, kaum untersucht</dd>
+          </div>
+        </dl>
+
+        <details class="topic" id="info-safety" open>
+          <summary>Sicherheit zuerst</summary>
+          <ul>
+            <li>
+              Alle Übungen hier sind fürs Trockene: an Land, im Sitzen oder Liegen. Nie im, am oder
+              unter Wasser üben.
+            </li>
+            <li>
+              <span class="badge strong">Gut belegt</span> Nie vor dem Luftanhalten
+              hyperventilieren, also schnell und tief atmen. Das senkt das CO₂ im Blut, und der
+              Atemreiz kommt später. Der Sauerstoff steigt dabei aber kaum. So kann man bewusstlos
+              werden, bevor man den Drang zu atmen spürt. Im Wasser endet das oft tödlich
+              (Flachwasser-Blackout). (Craig 1961, Boyd 2015)
+            </li>
+            <li>
+              Bei Schwindel, Kribbeln, Flimmern vor den Augen oder Druck im Kopf sofort normal
+              weiteratmen und für heute aufhören.
+            </li>
+            <li>
+              <span class="badge strong">Gut belegt</span> Beim Gerätetauchen nie die Luft anhalten:
+              Beim Aufsteigen dehnt sich die Luft in der Lunge aus und kann sie verletzen. Auch
+              keine Atemzüge auslassen, um Luft zu sparen („Skip-Breathing“), denn dabei staut sich
+              CO₂. Die CO₂-Übung hier ist kein Training dafür.
+            </li>
+            <li>
+              Bei Herz-, Lungen- oder Gefäßerkrankungen, Epilepsie oder in der Schwangerschaft
+              vorher ärztlich abklären. Bei Erkältung oder Fieber pausieren.
+            </li>
+            <li>
+              Die App ersetzt keinen Tauch- oder Apnoekurs. Luftanhalten im Wasser gehört in einen
+              Kurs mit Aufsicht, nie allein.
+            </li>
+          </ul>
+        </details>
+
+        <details class="topic" id="info-belly">
+          <summary>Zwerchfellatmung</summary>
+          <p>
+            Durch die Nase einatmen, sodass sich der Bauch hebt und die Brust ruhig bleibt. Dann
+            langsam durch locker geschlossene Lippen ausströmen lassen.
+          </p>
+          <ul>
+            <li>
+              <span class="badge strong">Gut belegt</span> 4 s ein und 6–8 s aus ergeben 5 bis 6
+              Atemzüge pro Minute, etwa halb so viele wie in Ruhe üblich. So langsames Atmen mit
+              langer Ausatmung erhöht die Herzratenvariabilität, ein Zeichen dafür, dass der
+              beruhigende Teil des Nervensystems aktiver ist, während der Übung und nach mehreren
+              Wochen Training. (Laborde 2022, Zaccaro 2018)
+            </li>
+            <li>
+              <span class="badge strong">Gut belegt</span> Langsame, tiefe Atemzüge belüften die
+              Lunge effizienter als schnelle, flache: Anteilig weniger Luft bleibt ungenutzt in
+              Luftröhre und Bronchien. (Russo 2017)
+            </li>
+            <li>
+              <span class="badge some">Erste Hinweise</span> In einer kleinen Studie mit 40 Personen
+              verbesserten acht Wochen Zwerchfellatmung die Aufmerksamkeit und senkten negative
+              Gefühle und das Stresshormon Cortisol. (Ma 2017)
+            </li>
+            <li>
+              <span class="badge practice">Erfahrungswissen</span> Wer ruhiges Atmen an Land übt,
+              findet es unter Wasser und in Stressmomenten leichter wieder. Dass das den
+              Luftverbrauch beim Tauchen senkt, ist plausibel, aber kaum untersucht.
+            </li>
+          </ul>
+          <p class="note">
+            Steigern: Ausatmen um 1 s verlängern, wenn sich mehrere Einheiten leicht angefühlt
+            haben. Nicht pressen.
+          </p>
+        </details>
+
+        <details class="topic" id="info-lips">
+          <summary>Lippenbremse</summary>
+          <p>
+            Kurz durch die Nase einatmen, dann gegen locker aufeinanderliegende Lippen ausatmen, als
+            wolltest du eine Kerzenflamme nur zum Flackern bringen.
+          </p>
+          <ul>
+            <li>
+              <span class="badge strong">Gut belegt</span> Der kleine Widerstand bremst die
+              Ausatmung und baut einen leichten Gegendruck auf, der die Atemwege offen hält. In der
+              Atemtherapie bei COPD ist das eine Standardtechnik. Atemübungen wie diese verlängerten
+              dort in Studien die Gehstrecke, auf Atemnot wirkten sie uneinheitlich. (Holland 2012)
+            </li>
+            <li>
+              <span class="badge practice">Erfahrungswissen</span> Bei Gesunden ist die Lippenbremse
+              kaum untersucht. Fürs Tauchen übt sie eine lange, gleichmäßige und vollständige
+              Ausatmung, wie man sie am Atemregler oder Schnorchel braucht.
+            </li>
+          </ul>
+          <p class="note">Steigern: Ausatemzeit in 1-s-Schritten verlängern, bis höchstens 12 s.</p>
+        </details>
+
+        <details class="topic" id="info-co2">
+          <summary>CO₂-Tabelle</summary>
+          <p>
+            Jede Runde wird gleich lang die Luft angehalten, dazwischen atmest du ruhig. Die Pausen
+            werden von 1:00 auf 0:20 kürzer, dadurch steigt das CO₂ von Runde zu Runde etwas an.
+          </p>
+          <ul>
+            <li>
+              <span class="badge strong">Gut belegt</span> Den Drang zu atmen treibt beim
+              Luftanhalten vor allem das steigende CO₂, weniger der sinkende Sauerstoff. Wann man
+              abbricht, hängt aber nicht nur von den Blutgasen ab, sondern auch von Gewöhnung und
+              Kopf. (Parkes 2006)
+            </li>
+            <li>
+              <span class="badge some">Erste Hinweise</span> In kleinen Studien verlängerte
+              Apnoe-Training die Haltezeit, zum Beispiel um 44 s nach zwei Wochen mit täglich zehn
+              Versuchen. Der Punkt, an dem man atmen muss, verschob sich nach hinten. (Schagatay
+              2000, Engan 2013) Diese Studien nutzten Maximalversuche. Zu CO₂-Tabellen selbst gibt
+              es kaum Daten.
+            </li>
+            <li>
+              <span class="badge practice">Erfahrungswissen</span> Gelassen zu bleiben, wenn der
+              Atemdrang kommt, hilft beim Schnorcheln und Apnoetauchen und in Stressmomenten. Beim
+              Gerätetauchen gilt trotzdem: nie die Luft anhalten.
+            </li>
+            <li>
+              Früh atmen ist richtig, wenn es zu viel wird. „Jetzt atmen“ ist kein Versagen. Die App
+              zählt es neutral, und die Serie bleibt erhalten.
+            </li>
+          </ul>
+        </details>
+
+        <details class="topic" id="info-best">
+          <summary>Bestzeit und 50-%-Regel</summary>
+          <ul>
+            <li>
+              <span class="badge practice">Erfahrungswissen</span> Klassische CO₂-Tabellen halten
+              etwa die Hälfte der persönlichen Bestzeit. Das ist eine Faustregel aus der
+              Apnoe-Ausbildung, kein Studienergebnis.
+            </li>
+            <li>
+              In den CO₂-Einstellungen unter „Haltezeit: Nach Bestzeit“ rechnet die App mit 50 %
+              deiner Bestzeit, gerundet auf 5 s und immer zwischen 0:15 und 2:00.
+            </li>
+            <li>
+              Sicher messen: nur an Land, im Sitzen oder Liegen, am besten mit jemandem in der Nähe.
+              Vorher zwei Minuten ruhig und normal atmen, nicht hyperventilieren, normal einatmen
+              statt voll pumpen. Nur so lange halten, wie es kontrolliert geht.
+            </li>
+            <li>
+              Höchstens alle zwei Wochen neu messen und nicht am Tag einer CO₂-Tabelle. Einen
+              Stoppuhr-Test gibt es in der App bewusst nicht: Maximalversuche gehören nicht in ein
+              tägliches Trainingswerkzeug.
+            </li>
+          </ul>
+        </details>
+
+        <details class="topic" id="info-plan">
+          <summary>Wochenplan</summary>
+          <ul>
+            <li>
+              <span class="badge strong">Gut belegt</span> Zwerchfellatmung täglich: Die Wirkung
+              langsamer Atmung zeigt sich auch nach mehrwöchigem Üben. (Laborde 2022)
+            </li>
+            <li>
+              <span class="badge practice">Erfahrungswissen</span> CO₂-Tabelle Mo, Mi und Fr,
+              Lippenbremse Di und Do, am Wochenende nur Zwerchfellatmung. Zwischen den fordernden
+              Einheiten liegen Ruhetage. Eine CO₂-Tabelle pro Tag reicht.
+            </li>
+          </ul>
+        </details>
+
+        <details class="topic" id="info-progress">
+          <summary>Fortschritt erkennen</summary>
+          <ul>
+            <li>
+              Unter „Verlauf“ siehst du deine Serie, den Kalender, die Minuten pro Woche und wie
+              sich Ausatem- und Haltezeit entwickeln. Bei CO₂ steht dazu, wie viele Runden du voll
+              gehalten hast.
+            </li>
+            <li>
+              Nach jeder Einheit kannst du angeben, wie sie sich angefühlt hat. Waren mehrere
+              Einheiten leicht (bei CO₂ mit allen Runden voll gehalten), schlägt die App eine Stufe
+              mehr vor: 1 s länger ausatmen oder 5 s länger halten. War es schwer, schlägt sie eine
+              Stufe weniger vor. Entscheiden tust du.
+            </li>
+            <li>
+              Die Form schwankt mit Schlaf, Stress und Infekten. Eine Stufe zurück ist normal und
+              kein Rückschritt.
+            </li>
+            <li>
+              Fortschritt im Alltag: ruhigeres Atmen in Stressmomenten, gelassener bleiben, wenn der
+              Atemdrang kommt. Eine Bestzeit-Messung alle paar Wochen zeigt die Entwicklung beim
+              Luftanhalten.
+            </li>
+            <li>
+              Die Serie ist Motivation, keine Pflicht. Krank oder erschöpft? Lieber pausieren, ein
+              fehlender Tag ändert nichts an dem, was du aufgebaut hast.
+            </li>
+          </ul>
+        </details>
+
+        <details class="topic" id="info-sources">
+          <summary>Quellen</summary>
+          <ol class="sources">
+            <li>
+              Boyd C et al. (2015): Fatal and Nonfatal Drowning Outcomes Related to Dangerous
+              Underwater Breath-Holding Behaviors – New York State, 1988–2011. MMWR 64(19):518–521.
+              <a
+                href="https://www.cdc.gov/mmwr/preview/mmwrhtml/mm6419a3.htm"
+                target="_blank"
+                rel="noopener noreferrer"
+                >CDC</a
+              >
+            </li>
+            <li>
+              Craig AB (1961): Causes of loss of consciousness during underwater swimming. J Appl
+              Physiol 16:583–586.
+              <a
+                href="https://doi.org/10.1152/jappl.1961.16.4.583"
+                target="_blank"
+                rel="noopener noreferrer"
+                >DOI</a
+              >
+            </li>
+            <li>
+              Engan H et al. (2013): Effects of two weeks of daily apnea training on diving
+              response, spleen contraction, and erythropoiesis in novel subjects. Scand J Med Sci
+              Sports 23(3):340–348.
+              <a
+                href="https://doi.org/10.1111/j.1600-0838.2011.01391.x"
+                target="_blank"
+                rel="noopener noreferrer"
+                >DOI</a
+              >
+            </li>
+            <li>
+              Holland AE et al. (2012): Breathing exercises for chronic obstructive pulmonary
+              disease. Cochrane Database Syst Rev, CD008250.
+              <a
+                href="https://doi.org/10.1002/14651858.CD008250.pub2"
+                target="_blank"
+                rel="noopener noreferrer"
+                >DOI</a
+              >
+            </li>
+            <li>
+              Laborde S et al. (2022): Effects of voluntary slow breathing on heart rate and heart
+              rate variability: A systematic review and a meta-analysis. Neurosci Biobehav Rev
+              138:104711.
+              <a
+                href="https://doi.org/10.1016/j.neubiorev.2022.104711"
+                target="_blank"
+                rel="noopener noreferrer"
+                >DOI</a
+              >
+            </li>
+            <li>
+              Ma X et al. (2017): The Effect of Diaphragmatic Breathing on Attention, Negative
+              Affect and Stress in Healthy Adults. Front Psychol 8:874.
+              <a
+                href="https://doi.org/10.3389/fpsyg.2017.00874"
+                target="_blank"
+                rel="noopener noreferrer"
+                >DOI</a
+              >
+            </li>
+            <li>
+              Parkes MJ (2006): Breath-holding and its breakpoint. Exp Physiol 91(1):1–15.
+              <a
+                href="https://doi.org/10.1113/expphysiol.2005.031625"
+                target="_blank"
+                rel="noopener noreferrer"
+                >DOI</a
+              >
+            </li>
+            <li>
+              Russo MA, Santarelli DM, O'Rourke D (2017): The physiological effects of slow
+              breathing in the healthy human. Breathe 13(4):298–309.
+              <a
+                href="https://doi.org/10.1183/20734735.009817"
+                target="_blank"
+                rel="noopener noreferrer"
+                >DOI</a
+              >
+            </li>
+            <li>
+              Schagatay E et al. (2000): Effects of physical and apnea training on apneic time and
+              the diving response in humans. Eur J Appl Physiol 82:161–169.
+              <a
+                href="https://doi.org/10.1007/s004210050668"
+                target="_blank"
+                rel="noopener noreferrer"
+                >DOI</a
+              >
+            </li>
+            <li>
+              Zaccaro A et al. (2018): How Breath-Control Can Change Your Life: A Systematic Review
+              on Psycho-Physiological Correlates of Slow Breathing. Front Hum Neurosci 12:353.
+              <a
+                href="https://doi.org/10.3389/fnhum.2018.00353"
+                target="_blank"
+                rel="noopener noreferrer"
+                >DOI</a
+              >
+            </li>
+          </ol>
+        </details>
+      </section>
+    </main>
+
+    <nav class="tabs" id="tabs" aria-label="Bereiche">
+      <button type="button" data-tab="training" aria-current="page">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 8h9.5A2.5 2.5 0 1 0 10 5.5" />
+          <path d="M3 12h14.5a2.5 2.5 0 1 1-2.5 2.5" />
+          <path d="M3 16h7" />
+        </svg>
+        Training
+      </button>
+      <button type="button" data-tab="progress">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M5 20v-8" />
+          <path d="M12 20V5" />
+          <path d="M19 20v-5" />
+        </svg>
+        Verlauf
+      </button>
+      <button type="button" data-tab="info">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 3a9 9 0 1 0 0 18 9 9 0 1 0 0-18z" />
+          <path d="M12 11v5" />
+          <path d="M12 7.5v.01" />
+        </svg>
+        Wissen
+      </button>
+    </nav>
+    <noscript><p class="safety">Der Atemtrainer braucht JavaScript.</p></noscript>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
