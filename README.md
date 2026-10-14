@@ -1,5 +1,7 @@
 # Atemtrainer
 
+**NOTE: This project is fully vibe-coded and therefore use at own risk (didn't even check code up to now)!!**
+
 Kleine Web-App für das Atemtraining fürs Tauchen, optimiert fürs Handy.
 
 - **Zwerchfellatmung**: 4 s ein, 6–8 s aus, 5 oder 10 Minuten
